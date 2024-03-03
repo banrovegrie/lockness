@@ -3,6 +3,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,c++
 
 data/*
+models/*
 
 ### C++ ###
 # Prerequisites
