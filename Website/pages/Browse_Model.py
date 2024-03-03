@@ -53,25 +53,48 @@ if search_model:
 # make a list of the model descriptions which are there in model_names
 model_descriptions = [model_descriptions[model.strip()] for model in model_names]
 selected_model = st.radio("Select a model", model_names, captions = model_descriptions)
-selected_model = selected_model.strip()
+if selected_model:
+    selected_model = selected_model.strip()
 
 st.divider()
 
 if selected_model and selected_model != "None":
-    st.write(f"You have selected {selected_model}!")   
     model = load_model(f'models/{selected_model}.pkl') 
-    
-    dataset_type = st.radio("What do you want to inference on?", ["None", "Single Point", "Whole Dataset"], captions = ["","Enter a point on which you want to do inference on", "Upload the whole dataset you want to do inference on"])
-    
-    st.divider()
+    col1, col2 = st.columns(2)
+    with col1: 
+        
+        dataset_type = st.radio("What do you want to inference on?", ["None", "Single Point", "Whole Dataset"], captions = ["","Enter a point on which you want to do inference on", "Upload the whole dataset you want to do inference on"])
+        st.divider()
 
+    with col2:
+        
+        if dataset_type == "None":
+            st.error("Please select a dataset type")
+            
+        elif dataset_type == "Single Point":
+            st.subheader("Inference on a single point")
+            st.write("Enter the point on which you want to do inference on")
+            st.code('''Instructions for encrypting the sample point
+* pip install lockness
+* lockness encrypt <path to the point>
+* Upload the encrypted sample point generated
+                    ''', language='markdown')
+            
+        elif dataset_type == "Whole Dataset":
+            st.subheader("Inference on a whole dataset")
+            st.write("Upload the dataset on which you want to do inference on")
+            st.code('''Instructions for encrypting the dataset
+* pip install lockness
+* lockness encrypt <path to the dataset>
+* Upload the encrypted dataset generated
+                    ''', language='markdown')
+    
     if dataset_type == "Single Point":
         # input_model = st.text_input("Enter the point here")
-        input_model = st.file_uploader("Upload the sample here")
+        input_user = st.file_uploader("Upload the sample here")
         
-        if input_model:
-            input_model = Image.open(input_model).convert('RGB')
-            st.image(input_model, caption='Uploaded Image.', use_column_width=False)
+        if input_user:
+            input_model = Image.open(input_user).convert('RGB')
             
             input_model = preprocess_image(input_model)
             batch_t = torch.unsqueeze(input_model, 0)
@@ -82,11 +105,17 @@ if selected_model and selected_model != "None":
                 
             top1_prob, top1_catid = torch.topk(probabilities, 1)
             # st.write(f"Top prediction index: {top1_catid.item()}, Probability: {top1_prob.item()}")
-            
+            st.divider()
             # print the most probable label
             with open('imagenet_classes.txt') as f:
                 labels = [line.strip() for line in f.readlines()]
-            st.write(f"Top class: {labels[top1_catid]}")
+                
+            col1, col2 = st.columns(2)
+            with col1 :     
+                st.subheader("Prediction")
+                st.write(f"Top class: {labels[top1_catid]}")
+            with col2:
+                st.image(input_user, caption='Uploaded Image.', use_column_width=True)
             
         
         
