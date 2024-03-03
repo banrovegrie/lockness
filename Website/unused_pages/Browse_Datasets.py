@@ -13,6 +13,13 @@ st.set_page_config(
 
 st.title("Find all the uploaded datsets here")
 
+search_dataset = st.text_input("Search for a dataset")
+
 with open ('datasets.txt', 'r') as f:
     datasets = f.readlines()
-    st.write(datasets)
+    
+if search_dataset:
+    datasets = [dataset for dataset in datasets if search_dataset.lower() in dataset.lower()]
+
+for dataset in datasets:
+    st.write(dataset)

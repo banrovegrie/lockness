@@ -1,4 +1,3 @@
-Monkey Type
-
-tpe
-Hello123
+MNIST
+ImageNet
+SumMe
