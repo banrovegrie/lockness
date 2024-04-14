@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Display welcome message
+echo "SShed into the lockness server"
 echo "Welcome to the Lockness Setup Wizard!"
 echo "This will guide you through setting up the Lockness application on your machine."
 echo ""

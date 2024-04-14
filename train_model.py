@@ -16,6 +16,7 @@ args = parser.parse_args()
 
 def load_data(data_path):
 
+    print("Encrypting data...")
     # Define source argument values for Alice and Bob
     ALICE = 0
     BOB = 1
@@ -45,7 +46,7 @@ def load_data(data_path):
     # return data_tensor
 
 def load_model(model_path):
-
+    print("Loading and encrytping model...")
     #Define an example network
     class ExampleNet(nn.Module):
         def __init__(self):
@@ -77,7 +78,7 @@ def load_model(model_path):
 def train_model(model, data, epochs=10, learning_rate=0.001):
     model.train() # Change to training mode
     loss = lockness.nn.MSELoss() # Choose loss functions
-
+    print("Training model...")
     x_train, y_train = data
         # Train the model: SGD on encrypted data
     for i in range(epochs):
@@ -99,21 +100,29 @@ def train_model(model, data, epochs=10, learning_rate=0.001):
         print("Epoch: {0:d} Loss: {1:.4f}".format(i, loss_value.get_plain_text()))
     
     return model
-    # criterion = torch.nn.MSELoss()  # Example loss function
-    # optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-    # for epoch in range(epochs):
-    #     optimizer.zero_grad()
-    #     outputs = model(data)
-    #     loss = criterion(outputs, data)  # Example: using data as target itself
-    #     loss.backward()
-    #     optimizer.step()
-    #     print(f'Epoch {epoch+1}/{epochs}, Loss: {loss.item()}')
-    # return model
+def get_accuracy(model):
+    x_test = torch.rand(100, 1, 28, 28)
+    y_test = torch.randint(1, (100,))
+    # Transform labels into one-hot encoding
+    label_eye = torch.eye(2)
+    y_test = label_eye[y_test]
+
+    # Transform all data to CrypTensors
+    x_test = lockness.cryptensor(x_test)
+    y_test = lockness.cryptensor(y_test)
+    
+    output = model(x_test)
+    _, predicted = torch.max(output.get_plain_text(), 1)
+    _, actual = torch.max(y_test.get_plain_text(), 1)
+    correct = (predicted == actual).sum().item()
+    total = actual.size(0)
+    accuracy = correct / total
+    print("Accuracy: {0:.4f}".format(accuracy))
+    return accuracy
 
 def save_output(model, output_path):
     torch.save(model.state_dict(), output_path)
-
 
 if __name__ == "__main__":
     lockness.init()
@@ -122,3 +131,4 @@ if __name__ == "__main__":
     model = load_model(args.model_path)
     trained_model = train_model(model, data, args.epochs, args.learning_rate)
     save_output(trained_model, args.output_path)
+    accuracy = get_accuracy(trained_model)
