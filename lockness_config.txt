@@ -1,1 +1,1 @@
-auth_key=sat
+auth_key=random_key
