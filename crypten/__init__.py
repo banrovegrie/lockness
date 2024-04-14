@@ -43,7 +43,7 @@ generators = {
 
 def init(config_file=None, party_name=None, device=None):
     """
-    Initialize CrypTen. It will initialize communicator, setup party
+    Initialize lockness. It will initialize communicator, setup party
     name for file save / load, and setup seeds for Random Number Generatiion.
     By default the function will initialize a set of RNG generators on CPU.
     If torch.cuda.is_available() returns True, it will initialize an additional
@@ -61,7 +61,7 @@ def init(config_file=None, party_name=None, device=None):
 
     # Return and raise warning if initialized
     if comm.is_initialized():
-        warnings.warn("CrypTen is already initialized.", RuntimeWarning)
+        warnings.warn("lockness is already initialized.", RuntimeWarning)
         return
 
     # Initialize communicator
@@ -105,7 +105,7 @@ def register_cryptensor(name):
     """Registers a custom :class:`CrypTensor` subclass.
 
     This decorator allows the user to instantiate a subclass of `CrypTensor`
-    from Python cpde, even if the class itself is not  part of CrypTen. To use
+    from Python cpde, even if the class itself is not  part of lockness. To use
     it, apply this decorator to a `CrypTensor` subclass, like this:
 
     .. code-block:: python
@@ -293,13 +293,13 @@ def load_from_party(
     **kwargs,
 ):
     """
-    Loads an object saved with `torch.save()` or `crypten.save_from_party()`.
+    Loads an object saved with `torch.save()` or `lockness.save_from_party()`.
 
     Args:
         f: a file-like object (has to implement `read()`, `readline()`,
               `tell()`, and `seek()`), or a string containing a file name
         preloaded: Use the preloaded value instead of loading a tensor/model from f.
-        encrypted: Determines whether crypten should load an encrypted tensor
+        encrypted: Determines whether lockness should load an encrypted tensor
                       or a plaintext torch tensor.
         model_class: Takes a model architecture class that is being communicated. This
                     class will be considered safe for deserialization so non-source
@@ -311,7 +311,7 @@ def load_from_party(
             will broadcast it to the other parties
         load_closure: Custom load function that matches the interface of `torch.load`,
         to be used when the tensor is saved with a custom save function in
-        `crypten.save_from_party`. Additional kwargs are passed on to the closure.
+        `lockness.save_from_party`. Additional kwargs are passed on to the closure.
     """
 
     if encrypted:
@@ -359,7 +359,7 @@ def load_from_party(
 
         # TODO: Encrypt modules before returning them
         # if isinstance(result, torch.nn.Module):
-        #     result = crypten.nn.from_pytorch(result, src=src)
+        #     result = lockness.nn.from_pytorch(result, src=src)
 
         result.src = src
         return result
@@ -367,18 +367,18 @@ def load_from_party(
 
 def load(f, load_closure=torch.load, **kwargs):
     """
-    Loads shares from an encrypted object saved with `crypten.save()`
+    Loads shares from an encrypted object saved with `lockness.save()`
     Args:
         f: a file-like object (has to implement `read()`, `readline()`,
               `tell()`, and `seek()`), or a string containing a file name
         load_closure: Custom load function that matches the interface of
         `torch.load`, to be used when the tensor is saved with a custom
-        save function in `crypten.save`. Additional kwargs are passed on
+        save function in `lockness.save`. Additional kwargs are passed on
         to the closure.
     """
     if "src" in kwargs:
         raise SyntaxError(
-            "crypten.load() should not be used with `src` argument. Use load_from_party() instead."
+            "lockness.load() should not be used with `src` argument. Use load_from_party() instead."
         )
 
     # TODO: Add support for loading from correct device (kwarg: map_location=device)
@@ -400,7 +400,7 @@ def save_from_party(obj, f, src=0, save_closure=torch.save, **kwargs):
         src: The source party that writes data to the specified file.
         save_closure: Custom save function that matches the interface of `torch.save`,
         to be used when the tensor is saved with a custom load function in
-        `crypten.load_from_party`. Additional kwargs are passed on to the closure.
+        `lockness.load_from_party`. Additional kwargs are passed on to the closure.
     """
     if is_encrypted_tensor(obj):
         raise NotImplementedError("Saving encrypted tensors is not yet supported")
@@ -427,7 +427,7 @@ def save(obj, f, save_closure=torch.save, **kwargs):
               `tell()`, and `seek()`), or a string containing a file name
         save_closure: Custom save function that matches the interface of `torch.save`,
         to be used when the tensor is saved with a custom load function in
-        `crypten.load`. Additional kwargs are passed on to the closure.
+        `lockness.load`. Additional kwargs are passed on to the closure.
     """
     # TODO: Add support for saving to correct device (kwarg: map_location=device)
     save_closure(obj, f, **kwargs)
@@ -448,7 +448,7 @@ def where(condition, input, other):
 
 def cat(tensors, dim=0):
     """
-    Concatenates the specified CrypTen `tensors` along dimension `dim`.
+    Concatenates the specified lockness `tensors` along dimension `dim`.
     """
     assert isinstance(tensors, list), "input to cat must be a list"
     if all(torch.is_tensor(t) for t in tensors):
@@ -466,8 +466,8 @@ def cat(tensors, dim=0):
 
 def stack(tensors, dim=0):
     """
-    Stacks the specified CrypTen `tensors` along dimension `dim`. In contrast to
-    `crypten.cat`, this adds a dimension to the result tensor.
+    Stacks the specified lockness `tensors` along dimension `dim`. In contrast to
+    `lockness.cat`, this adds a dimension to the result tensor.
     """
     assert isinstance(tensors, list), "input to stack must be a list"
     assert all(isinstance(t, CrypTensor) for t in tensors), "inputs must be CrypTensors"
